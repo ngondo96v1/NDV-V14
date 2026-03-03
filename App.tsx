@@ -678,7 +678,7 @@ const App: React.FC = () => {
       }
 
       let newStatus = loan.status;
-      let rejectionReason = reason || loan.rejectionReason;
+      let rejectionReason = action === 'REJECT' ? (reason || loan.rejectionReason) : undefined;
 
       if (action === 'DISBURSE') newBudget -= (loan.amount * 0.85); // User receives 85%
       else if (action === 'SETTLE') {
