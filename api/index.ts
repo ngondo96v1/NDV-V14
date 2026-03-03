@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { createClient } from "@supabase/supabase-js";
-import * as dotenv from "dotenv";
+import dotenv from "dotenv";
 
 // Load environment variables
 dotenv.config();
@@ -503,5 +503,4 @@ app.use((req, res) => {
 });
 
 // Export the app for Vercel
-export { app as router };
 export default app;

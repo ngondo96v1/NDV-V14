@@ -9,7 +9,7 @@ import * as dotenv from "dotenv";
 // Load environment variables from .env file
 dotenv.config();
 
-import { router as apiRouter } from "./api/index";
+import apiRouter from "./api/index";
 
 async function startServer() {
   const app = express();
