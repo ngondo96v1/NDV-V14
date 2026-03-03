@@ -610,7 +610,14 @@ const App: React.FC = () => {
       let updatedLoan: LoanRecord | null = null;
       const newLoans = loans.map(loan => {
         if (loan.id === loanId) {
-          updatedLoan = { ...loan, status: 'CHỜ TẤT TOÁN', billImage: bill, settlementType, updatedAt: Date.now() };
+          updatedLoan = { 
+            ...loan, 
+            status: 'CHỜ TẤT TOÁN', 
+            billImage: bill, 
+            settlementType, 
+            rejectionReason: '', // Clear old rejection reason on re-submission
+            updatedAt: Date.now() 
+          };
           return updatedLoan;
         }
         return loan;
@@ -678,7 +685,7 @@ const App: React.FC = () => {
       }
 
       let newStatus = loan.status;
-      let rejectionReason = action === 'REJECT' ? (reason || loan.rejectionReason) : null;
+      let rejectionReason = action === 'REJECT' ? (reason || loan.rejectionReason) : '';
 
       if (action === 'DISBURSE') newBudget -= (loan.amount * 0.85); // User receives 85%
       else if (action === 'SETTLE') {
@@ -745,7 +752,7 @@ const App: React.FC = () => {
         date: newDueDate,
         rejectionReason, 
         // Clear bill and type if it's a successful Principal Settlement to keep the next cycle clean
-        billImage: (action === 'SETTLE' && loan.settlementType === 'PRINCIPAL') ? null : loan.billImage,
+        billImage: (action === 'SETTLE' && loan.settlementType === 'PRINCIPAL') ? '' : loan.billImage,
         settlementType: (action === 'SETTLE' && loan.settlementType === 'PRINCIPAL') ? null : loan.settlementType,
         updatedAt: Date.now() 
       };
