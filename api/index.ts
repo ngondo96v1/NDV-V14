@@ -43,6 +43,14 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
+// Debug middleware to log incoming requests on Vercel
+app.use((req, res, next) => {
+  if (process.env.NODE_ENV === 'production') {
+    console.log(`[API] ${req.method} ${req.url}`);
+  }
+  next();
+});
+
 // Helper to safely stringify data that might contain BigInt
 const safeJsonStringify = (data: any) => {
   return JSON.stringify(data, (key, value) =>
@@ -472,12 +480,14 @@ app.post(["/api/sync", "/sync"], async (req, res) => {
 });
 
 // Specific health check for Vercel deployment verification
-app.get(["/api/api-health", "/api-health"], (req, res) => {
+app.get(["/api/api-health", "/api-health", "/api", "/"], (req, res) => {
   res.json({ 
     status: "ok", 
     environment: process.env.NODE_ENV || 'production', 
     supabase: !!supabase,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    url: req.url,
+    method: req.method
   });
 });
 
@@ -488,7 +498,7 @@ app.use((req, res) => {
     error: "API Route Not Found", 
     path: req.url,
     method: req.method,
-    message: "Nếu bạn thấy lỗi này trên Vercel, hãy kiểm tra lại cấu hình rewrites trong vercel.json"
+    message: "Nếu bạn thấy lỗi này trên Vercel, hãy kiểm tra lại cấu hình rewrites trong vercel.json. Đảm bảo /api/(.*) trỏ về /api/index.ts"
   });
 });
 

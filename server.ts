@@ -30,13 +30,19 @@ async function startServer() {
   app.use(express.json({ limit: '50mb' }));
 
   // Use the API router directly
-  app.use("/api", apiRouter);
+  // We use a middleware to log and then pass to the apiRouter
+  app.use("/api", (req, res, next) => {
+    // Pass the request to the apiRouter
+    // apiRouter is an Express app, so it will handle the request
+    apiRouter(req, res, next);
+  });
 
   // Explicit 404 for /api to prevent fall-through to Vite/SPA fallback
+  // This will only be reached if apiRouter calls next() (which it shouldn't as it has a catch-all)
   app.use("/api", (req, res) => {
     res.status(404).json({ 
       error: "API Route Not Found", 
-      message: `Đường dẫn API không tồn tại: ${req.method} ${req.url}` 
+      message: `Đường dẫn API không tồn tại trên server: ${req.method} ${req.url}` 
     });
   });
 
