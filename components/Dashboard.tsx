@@ -307,7 +307,10 @@ const Dashboard: React.FC<DashboardProps> = ({
                     </div>
                   </div>
                   
-                  {item.rejectionReason && item.rejectionReason !== 'null' && item.rejectionReason.trim() !== '' && (item.status === 'BỊ TỪ CHỐI' || (item.status === 'ĐANG NỢ' && item.billImage)) && (
+                  {item.rejectionReason && 
+                   item.rejectionReason !== 'null' && 
+                   String(item.rejectionReason).trim() !== '' && 
+                   (item.status === 'BỊ TỪ CHỐI' || (item.status === 'ĐANG NỢ' && item.billImage && item.billImage !== 'null')) && (
                     <div className="bg-red-500/5 border border-red-500/10 rounded-xl p-2 flex items-center justify-center gap-2">
                       <AlertCircle size={10} className="text-red-500 shrink-0" />
                       <p className="text-[7px] font-black text-red-500/80 uppercase tracking-widest text-center">
