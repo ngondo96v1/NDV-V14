@@ -56,7 +56,17 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<AppView>(AppView.LOGIN);
   const [settleLoanFromDash, setSettleLoanFromDash] = useState<LoanRecord | null>(null);
   const [viewLoanFromDash, setViewLoanFromDash] = useState<LoanRecord | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    const saved = localStorage.getItem('vnv_user');
+    if (saved && saved !== 'null' && saved !== '') {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
+  });
   const [loans, setLoans] = useState<LoanRecord[]>([]);
   const [registeredUsers, setRegisteredUsers] = useState<User[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -66,7 +76,10 @@ const App: React.FC = () => {
   const [monthlyStats, setMonthlyStats] = useState<MonthlyStat[]>([]);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [registerError, setRegisterError] = useState<string | null>(null);
-  const [rememberMe, setRememberMe] = useState(true);
+  const [rememberMe, setRememberMe] = useState(() => {
+    const saved = localStorage.getItem('vnv_remember');
+    return saved === null ? true : saved === 'true';
+  });
   const [isInitialized, setIsInitialized] = useState(false);
   const [showBankWarning, setShowBankWarning] = useState(false);
   const [storageFull, setStorageFull] = useState(false);
@@ -105,6 +118,12 @@ const App: React.FC = () => {
       console.error("Lỗi lưu thông báo:", e);
     }
   };
+
+  useEffect(() => {
+    if (user && currentView === AppView.LOGIN) {
+      setCurrentView(user.isAdmin ? AppView.ADMIN_DASHBOARD : AppView.DASHBOARD);
+    }
+  }, [user]);
 
   useEffect(() => {
     let isMounted = true;
@@ -202,26 +221,6 @@ const App: React.FC = () => {
           if (freshUser && (freshUser.updatedAt || 0) >= (user.updatedAt || 0)) {
             if (JSON.stringify(freshUser) !== JSON.stringify(user)) {
               setUser(freshUser);
-            }
-          }
-        }
-
-        // Only handle auto-login during the very first fetch
-        if (isInitial) {
-          const savedUser = localStorage.getItem('vnv_user');
-          if (savedUser && savedUser !== 'null' && savedUser !== '') {
-            try {
-              const parsedUser = JSON.parse(savedUser);
-              const freshUser = data.users.find((u: User) => u.id === parsedUser.id);
-              if (freshUser) {
-                setUser(freshUser);
-                setCurrentView(freshUser.isAdmin ? AppView.ADMIN_DASHBOARD : AppView.DASHBOARD);
-              } else if (parsedUser.isAdmin) {
-                setUser(parsedUser);
-                setCurrentView(AppView.ADMIN_DASHBOARD);
-              }
-            } catch (jsonError) {
-              localStorage.removeItem('vnv_user');
             }
           }
         }
@@ -391,12 +390,17 @@ const App: React.FC = () => {
 
   // Only persist current user session to localStorage if rememberMe is true
   useEffect(() => {
+    localStorage.setItem('vnv_remember', rememberMe.toString());
+    
+    if (!isInitialized) return; // Don't touch localStorage during initial load
+
     if (rememberMe && user) {
       localStorage.setItem('vnv_user', JSON.stringify(user));
-    } else {
+    } else if (!user) {
+      // Only remove if user is explicitly null (logged out)
       localStorage.removeItem('vnv_user');
     }
-  }, [user, rememberMe]);
+  }, [user, rememberMe, isInitialized]);
 
   const handleLogin = (phone: string, password?: string) => {
     setLoginError(null);
