@@ -104,7 +104,7 @@ const App: React.FC = () => {
       type
     };
     
-    const newNotifs = [newNotif, ...notifications].slice(0, 50);
+    const newNotifs = [newNotif, ...notifications].slice(0, 3);
     setNotifications(newNotifs);
 
     // Sync notification to server immediately
@@ -194,8 +194,9 @@ const App: React.FC = () => {
 
         if (data.notifications) {
           setNotifications(prev => {
-            if (JSON.stringify(prev) === JSON.stringify(data.notifications)) return prev;
-            return data.notifications;
+            const limitedNotifs = data.notifications.slice(0, 3);
+            if (JSON.stringify(prev) === JSON.stringify(limitedNotifs)) return prev;
+            return limitedNotifs;
           });
         }
 
@@ -691,14 +692,14 @@ const App: React.FC = () => {
       let newStatus = loan.status;
       let rejectionReason = action === 'REJECT' ? (reason || loan.rejectionReason) : null;
 
-      if (action === 'DISBURSE') newBudget -= (loan.amount * 0.85); // User receives 85%
+      if (action === 'DISBURSE') newBudget -= loan.amount; // Budget decreases by 100% of loan amount
       else if (action === 'SETTLE') {
         if (loan.settlementType === 'PRINCIPAL') {
-          // Vay Gốc: Only pay 15% fee
-          newBudget += (loan.amount * 0.15);
+          // Vay Gốc: Only pay 15% fee. This increases lending capacity by fee / 0.85
+          newBudget = Math.floor(newBudget + (loan.amount * 0.15 / 0.85));
         } else {
-          // Tất Cả: Pay principal + fines
-          newBudget += (loan.amount + (loan.fine || 0));
+          // Tất Cả: Pay principal + fines. Total payback increases capacity by payback / 0.85
+          newBudget = Math.floor(newBudget + ((loan.amount + (loan.fine || 0)) / 0.85));
         }
       }
 

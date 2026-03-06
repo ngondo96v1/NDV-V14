@@ -43,7 +43,7 @@ const NotificationModal: React.FC<NotificationModalProps> = ({ notifications, on
               <p className="text-[10px] font-black uppercase tracking-widest">Không có thông báo mới</p>
             </div>
           ) : (
-            notifications.map((n) => (
+            notifications.slice(0, 3).map((n) => (
               <div 
                 key={n.id} 
                 onClick={() => !n.read && onMarkRead(n.id)}
