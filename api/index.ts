@@ -93,7 +93,7 @@ const autoCleanupStorage = async () => {
       
       for (const notif of allNotifs) {
         userNotifCounts[notif.userId] = (userNotifCounts[notif.userId] || 0) + 1;
-        if (userNotifCounts[notif.userId] > 10) {
+        if (userNotifCounts[notif.userId] > 3) {
           idsToDelete.push(notif.id);
         }
       }
@@ -107,9 +107,8 @@ const autoCleanupStorage = async () => {
       }
     }
 
-    // 2. Cleanup Loans: Delete Rejected (>3d) and Settled (>7d)
+    // 2. Cleanup Loans: Delete Rejected and Settled (>3d)
     const threeDaysAgo = now.getTime() - (3 * 24 * 60 * 60 * 1000);
-    const sevenDaysAgo = now.getTime() - (7 * 24 * 60 * 60 * 1000);
 
     const { error: err1 } = await supabase.from('loans')
       .delete()
@@ -119,7 +118,7 @@ const autoCleanupStorage = async () => {
     const { error: err2 } = await supabase.from('loans')
       .delete()
       .eq('status', 'ĐÃ TẤT TOÁN')
-      .lt('updatedAt', sevenDaysAgo);
+      .lt('updatedAt', threeDaysAgo);
 
     if (err1 || err2) console.error("[Cleanup] Error deleting old loans:", err1 || err2);
     
