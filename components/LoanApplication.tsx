@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { User, LoanRecord } from '../types';
-import { Wallet, X, Eye, FileText, CheckCircle2, ShieldCheck, Eraser, ChevronLeft, CreditCard, Copy, Camera, UploadCloud, CircleHelp, Info, Award, Landmark, FileCheck, AlertCircle, ArrowDownToLine, ShieldAlert, ChevronRight } from 'lucide-react';
+import { Wallet, X, Eye, FileText, CheckCircle2, ShieldCheck, Eraser, ChevronLeft, CreditCard, Copy, Camera, UploadCloud, CircleHelp, Info, Award, Landmark, FileCheck, AlertCircle, ArrowDownToLine, ShieldAlert, ChevronRight, History } from 'lucide-react';
 import ContractModal from './ContractModal';
 import { compressImage } from '../utils';
 
@@ -449,6 +449,84 @@ const LoanApplication: React.FC<LoanApplicationProps> = ({ user, loans, systemBu
               className="h-full bg-[#ff8c00] transition-all duration-1000" 
               style={{ width: `${(userAvailableBalance / totalLimitCap) * 100}%` }}
             ></div>
+          </div>
+        </div>
+
+        {/* Loan History List in Apply Tab */}
+        <div className="space-y-3 pt-2">
+          <div className="flex items-center gap-2 px-1 text-gray-400">
+            <History size={14} />
+            <h3 className="text-[9px] font-black uppercase tracking-widest">Lịch sử giao dịch</h3>
+          </div>
+
+          <div className="space-y-2 pb-10">
+            {loans.length === 0 ? (
+              <div className="bg-[#111111]/50 border border-white/5 border-dashed rounded-2xl p-8 text-center">
+                <p className="text-[9px] font-black text-gray-700 uppercase tracking-widest">Chưa có giao dịch nào</p>
+              </div>
+            ) : (
+              loans.map((item, idx) => {
+                const [d, m, y] = item.date.split('/').map(Number);
+                const isOverdue = (item.status === 'ĐANG NỢ' || item.status === 'CHỜ TẤT TOÁN') && new Date(y, m - 1, d) < today;
+                const statusColor = getStatusColor(item.status, isOverdue);
+
+                return (
+                  <div key={idx} className={`bg-[#111111] border rounded-2xl p-3.5 flex flex-col gap-2.5 ${isOverdue ? 'border-red-600/30 bg-red-600/5' : 'border-white/5'}`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-gray-500">
+                          <FileText size={18} />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <p className="text-sm font-black text-white leading-none">{item.amount.toLocaleString()} đ</p>
+                            <span className="text-[7px] font-black text-gray-600 uppercase tracking-widest">#{item.id}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <div className={`w-1 h-1 rounded-full ${item.status === 'ĐÃ TẤT TOÁN' ? 'bg-green-500' : isOverdue ? 'bg-red-500 animate-pulse' : 'bg-orange-500 animate-pulse'}`}></div>
+                            <span className={`text-[7px] font-black uppercase ${statusColor}`}>
+                              {isOverdue ? 'QUÁ HẠN' : item.status}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                         <button 
+                           onClick={() => setSelectedContract(item)}
+                           className="w-7 h-7 bg-white/5 rounded-lg flex items-center justify-center text-gray-500 hover:text-white transition-all"
+                         >
+                           <Eye size={14} />
+                         </button>
+                         {(item.status === 'ĐANG NỢ' || item.status === 'ĐANG GIẢI NGÂN') && (
+                           <button 
+                             onClick={() => {
+                               setSettleLoan(item);
+                               setStep(LoanStep.SETTLE_DETAIL);
+                             }}
+                             className="bg-white text-black font-black px-2.5 py-1.5 rounded-lg text-[7px] uppercase tracking-widest active:scale-95 transition-all"
+                           >
+                             Tất toán
+                           </button>
+                         )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between border-t border-white/5 pt-2">
+                      <div className="flex gap-2.5">
+                        <p className="text-[7px] font-bold text-gray-700">Hạn: {item.date}</p>
+                        <p className="text-[7px] font-bold text-gray-700">Tạo: {item.createdAt}</p>
+                      </div>
+                      {isOverdue && (
+                        <div className="text-right">
+                          <p className="text-[6px] font-black text-gray-600 uppercase tracking-widest leading-none">Phí phạt trễ hạn</p>
+                          <p className="text-[9px] font-black text-red-500">{(item.fine || 0).toLocaleString()} đ</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
 

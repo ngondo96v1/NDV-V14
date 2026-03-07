@@ -107,18 +107,18 @@ const autoCleanupStorage = async () => {
       }
     }
 
-    // 2. Cleanup Loans: Delete Rejected and Settled (>3d)
-    const threeDaysAgo = now.getTime() - (3 * 24 * 60 * 60 * 1000);
+    // 2. Cleanup Loans: Delete Rejected and Settled (>30d)
+    const thirtyDaysAgo = now.getTime() - (30 * 24 * 60 * 60 * 1000);
 
     const { error: err1 } = await supabase.from('loans')
       .delete()
       .eq('status', 'BỊ TỪ CHỐI')
-      .lt('updatedAt', threeDaysAgo);
+      .lt('updatedAt', thirtyDaysAgo);
     
     const { error: err2 } = await supabase.from('loans')
       .delete()
       .eq('status', 'ĐÃ TẤT TOÁN')
-      .lt('updatedAt', threeDaysAgo);
+      .lt('updatedAt', thirtyDaysAgo);
 
     if (err1 || err2) console.error("[Cleanup] Error deleting old loans:", err1 || err2);
     

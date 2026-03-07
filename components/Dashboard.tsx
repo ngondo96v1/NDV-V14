@@ -202,7 +202,7 @@ const Dashboard: React.FC<DashboardProps> = ({
               <p className="text-[7px] font-bold text-gray-500 uppercase">Tổng tiền đã vay</p>
               <p className="text-base font-black text-white">
                 {loans
-                  .filter(l => l.status === 'ĐANG NỢ' || l.status === 'CHỜ TẤT TOÁN' || l.status === 'ĐẠ TẤT TOÁN' || l.status === 'ĐANG GIẢI NGÂN')
+                  .filter(l => l.status === 'ĐANG NỢ' || l.status === 'CHỜ TẤT TOÁN' || l.status === 'ĐÃ TẤT TOÁN' || l.status === 'ĐANG GIẢI NGÂN')
                   .reduce((acc, curr) => acc + curr.amount, 0).toLocaleString()} đ
               </p>
             </div>
