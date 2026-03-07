@@ -298,8 +298,8 @@ const RankLimits: React.FC<RankLimitsProps> = ({ user, isGlobalProcessing, onBac
   }
 
   return (
-    <div className="w-full bg-black px-4 pb-20 space-y-2 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between px-1 pt-4">
+    <div className="w-full h-full bg-black px-4 flex flex-col animate-in fade-in duration-500 overflow-hidden">
+      <div className="flex items-center justify-between px-1 py-4 flex-none">
         <div className="flex items-center gap-2">
           <button 
             onClick={onBack}
@@ -318,35 +318,25 @@ const RankLimits: React.FC<RankLimitsProps> = ({ user, isGlobalProcessing, onBac
       </div>
 
       {showHelp && (
-        <div className="bg-[#ff8c00]/5 border border-[#ff8c00]/20 rounded-xl p-4 animate-in fade-in zoom-in duration-300 space-y-2">
+        <div className="bg-[#ff8c00]/5 border border-[#ff8c00]/20 rounded-xl p-3 mb-2 animate-in fade-in zoom-in duration-300 space-y-1.5 flex-none">
            <div className="flex items-center gap-2">
               <Info size={12} className="text-[#ff8c00]" />
               <span className="text-[8px] font-black text-[#ff8c00] uppercase tracking-widest">Quy định nâng hạng</span>
            </div>
-           <div className="space-y-2">
+           <div className="grid grid-cols-1 gap-1.5">
               <div className="flex gap-2">
                 <div className="w-3.5 h-3.5 bg-[#ff8c00] rounded-full flex items-center justify-center shrink-0 font-black text-[8px] text-black">1</div>
-                <p className="text-[8px] font-bold text-gray-300 leading-tight">
-                  <span className="text-[#ff8c00]">Lợi ích:</span> Tăng hạn mức vay tối đa, ưu tiên xét duyệt lệnh giải ngân và nhận được các ưu đãi về phí phạt.
-                </p>
+                <p className="text-[8px] font-bold text-gray-300 leading-tight">Tăng hạn mức vay, ưu tiên duyệt lệnh và giảm phí phạt.</p>
               </div>
               <div className="flex gap-2">
                 <div className="w-3.5 h-3.5 bg-[#ff8c00] rounded-full flex items-center justify-center shrink-0 font-black text-[8px] text-black">2</div>
-                <p className="text-[8px] font-bold text-gray-300 leading-tight">
-                  <span className="text-[#ff8c00]">Phí nâng hạng:</span> Tương đương 5% giá trị hạn mức tối đa của hạng thành viên mới.
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <div className="w-3.5 h-3.5 bg-[#ff8c00] rounded-full flex items-center justify-center shrink-0 font-black text-[8px] text-black">3</div>
-                <p className="text-[8px] font-bold text-gray-300 leading-tight">
-                  <span className="text-[#ff8c00]">Thời gian:</span> Yêu cầu nâng hạng sẽ được hệ thống xét duyệt trong vòng 30 phút đến 2 giờ làm việc.
-                </p>
+                <p className="text-[8px] font-bold text-gray-300 leading-tight">Phí nâng hạng: 5% giá trị hạn mức tối đa của hạng mới.</p>
               </div>
            </div>
         </div>
       )}
 
-      <div className="space-y-2">
+      <div className="flex-1 flex flex-col gap-2 pb-4 overflow-hidden">
         {ranks.map((rank, idx) => {
           const isCurrent = user?.rank === rank.id;
           const isTargetPending = user?.pendingUpgradeRank === rank.id;
@@ -355,50 +345,47 @@ const RankLimits: React.FC<RankLimitsProps> = ({ user, isGlobalProcessing, onBac
           return (
             <div 
               key={rank.id}
-              className={`bg-[#111111] rounded-xl p-3 relative transition-all duration-300 border ${
+              className={`flex-1 min-h-0 bg-[#111111] rounded-xl p-3 relative transition-all duration-300 border flex flex-col justify-center ${
                 isCurrent ? 'border-[#ff8c00] shadow-[0_0_15px_rgba(255,140,0,0.1)]' : 'border-white/5'
               } ${!isCurrent && (currentRankIndex === ranks.length - 1 || hasPending) ? 'opacity-40' : 'opacity-100'}`}
             >
               {(isCurrent || isTargetPending) && (
-                <div className={`absolute right-3 top-3 text-[6px] font-black px-2 py-0.5 rounded-full tracking-widest uppercase ${
+                <div className={`absolute right-3 top-2 text-[6px] font-black px-2 py-0.5 rounded-full tracking-widest uppercase ${
                   isCurrent ? 'bg-[#ff8c00] text-black' : 'bg-blue-500 text-white'
                 }`}>
                   {isCurrent ? 'Hiện tại' : 'Đang duyệt'}
                 </div>
               )}
 
-              <div className="flex gap-3 mb-2">
-                <div className="w-10 h-10 bg-white/5 rounded-lg flex items-center justify-center">
-                  {React.cloneElement(rank.icon as React.ReactElement, { size: 18 })}
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-white/5 rounded-lg flex items-center justify-center shrink-0">
+                  {React.cloneElement(rank.icon as React.ReactElement, { size: 16 })}
                 </div>
-                <div className="flex flex-col justify-center">
-                  <h3 className="text-sm font-black text-white leading-tight tracking-tight">{rank.name}</h3>
-                  <p className="text-[7px] font-black text-gray-500 uppercase tracking-widest">Hạn mức: {rank.min} - {rank.max}</p>
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                {rank.features.map((feature, fIdx) => (
-                  <div key={fIdx} className="flex items-center gap-1.5">
-                    <div className={`w-2.5 h-2.5 rounded-full border flex items-center justify-center ${isCurrent ? 'border-[#ff8c00]' : 'border-gray-800'}`}>
-                      <CheckCircle2 size={6} className={isCurrent ? 'text-[#ff8c00]' : 'text-gray-800'} />
-                    </div>
-                    <span className={`text-[8px] font-bold ${isCurrent ? 'text-gray-200' : 'text-gray-500'}`}>{feature}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-baseline gap-2">
+                    <h3 className="text-sm font-black text-white leading-tight tracking-tight uppercase">{rank.name}</h3>
+                    <span className="text-[7px] font-black text-[#ff8c00] tracking-widest">{rank.max}</span>
                   </div>
-                ))}
-              </div>
-
-              {isHigherRank && !hasPending && (
-                <div className="mt-2 pt-2 border-t border-white/5">
+                  <div className="flex gap-2 mt-0.5">
+                    {rank.features.slice(0, 2).map((feature, fIdx) => (
+                      <div key={fIdx} className="flex items-center gap-1">
+                        <CheckCircle2 size={6} className={isCurrent ? 'text-[#ff8c00]' : 'text-gray-600'} />
+                        <span className="text-[7px] font-bold text-gray-500 whitespace-nowrap">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {isHigherRank && !hasPending && (
                   <button 
                     onClick={() => handleOpenPayment(rank)}
-                    className="w-full bg-[#ff8c00] text-black font-black py-2 rounded-lg flex items-center justify-center gap-2 shadow-lg shadow-orange-950/20 active:scale-95 transition-all text-[8px] uppercase tracking-[0.1em]"
+                    className="bg-[#ff8c00] text-black font-black px-3 py-2 rounded-lg flex items-center gap-1.5 shadow-lg shadow-orange-950/20 active:scale-95 transition-all text-[7px] uppercase tracking-widest"
                   >
-                    <ArrowUpCircle size={12} />
-                    NÂNG CẤP NGAY
+                    <ArrowUpCircle size={10} />
+                    NÂNG CẤP
                   </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           );
         })}
