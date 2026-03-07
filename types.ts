@@ -42,6 +42,7 @@ export interface User {
   bankName?: string;
   bankAccountNumber?: string;
   bankAccountHolder?: string;
+  hasJoinedZalo?: boolean;
   updatedAt?: number;
 }
 

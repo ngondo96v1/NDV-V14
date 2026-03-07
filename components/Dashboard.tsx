@@ -284,6 +284,11 @@ const Dashboard: React.FC<DashboardProps> = ({
                           <span className={`text-[7px] font-black uppercase ${statusColor}`}>
                             {isOverdue ? 'QUÁ HẠN' : item.status}
                           </span>
+                          {(item.status === 'ĐÃ DUYỆT' || item.status === 'ĐANG GIẢI NGÂN') && (
+                            <span className="text-[7px] font-black text-green-500 uppercase ml-1">
+                              (Thực nhận: {(item.amount * 0.85).toLocaleString()} đ)
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>

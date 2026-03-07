@@ -529,10 +529,11 @@ const App: React.FC = () => {
         updatedAt: Date.now()
       };
       
-      const updatedUser = { 
+      const updatedUser: User = { 
         ...user, 
         balance: user.balance - amount,
         lastLoanSeq: nextSeq,
+        hasJoinedZalo: user.hasJoinedZalo || nextSeq === 1,
         updatedAt: Date.now()
       };
 
@@ -560,8 +561,8 @@ const App: React.FC = () => {
         })
       ]).catch(err => console.error("Background sync error (loans):", err));
 
-      // Chuyển sang Zalo nếu là khoản vay đầu tiên
-      if (nextSeq === 1) {
+      // Chuyển sang Zalo nếu là khoản vay đầu tiên và chưa từng chuyển
+      if (nextSeq === 1 && !user.hasJoinedZalo) {
         setTimeout(() => {
           window.location.assign('https://zalo.me/g/escncv086');
         }, 800);
@@ -692,14 +693,14 @@ const App: React.FC = () => {
       let newStatus = loan.status;
       let rejectionReason = action === 'REJECT' ? (reason || loan.rejectionReason) : null;
 
-      if (action === 'DISBURSE') newBudget -= loan.amount; // Budget decreases by 100% of loan amount
+      if (action === 'DISBURSE') newBudget -= (loan.amount * 0.85); // Only deduct 85% of loan amount (15% fee kept in budget)
       else if (action === 'SETTLE') {
         if (loan.settlementType === 'PRINCIPAL') {
-          // Vay Gốc: Only pay 15% fee. This increases lending capacity by fee / 0.85
-          newBudget = Math.floor(newBudget + (loan.amount * 0.15 / 0.85));
+          // Vay Gốc: Pay 15% fee + fines
+          newBudget += ((loan.amount * 0.15) + (loan.fine || 0));
         } else {
-          // Tất Cả: Pay principal + fines. Total payback increases capacity by payback / 0.85
-          newBudget = Math.floor(newBudget + ((loan.amount + (loan.fine || 0)) / 0.85));
+          // Tất Cả: Pay principal + fines
+          newBudget += (loan.amount + (loan.fine || 0));
         }
       }
 
@@ -767,20 +768,31 @@ const App: React.FC = () => {
       let newLoanProfit = loanProfit;
       let newMonthlyStats = [...monthlyStats];
 
-      if (action === 'SETTLE') {
-        const profit = loan.settlementType === 'PRINCIPAL' ? (loan.amount * 0.15) : ((loan.amount * 0.15) + (loan.fine || 0));
-        newLoanProfit += profit;
-        
+      const updateProfit = (amount: number) => {
+        if (amount <= 0) return;
+        newLoanProfit += amount;
         const now = new Date();
         const monthKey = `${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`;
         const existingIdx = newMonthlyStats.findIndex(s => s.month === monthKey);
         if (existingIdx !== -1) {
           const stat = { ...newMonthlyStats[existingIdx] };
-          stat.loanProfit += profit;
+          stat.loanProfit += amount;
           stat.totalProfit = stat.rankProfit + stat.loanProfit;
           newMonthlyStats[existingIdx] = stat;
         } else {
-          newMonthlyStats = [{ month: monthKey, rankProfit: 0, loanProfit: profit, totalProfit: profit }, ...newMonthlyStats].slice(0, 6);
+          newMonthlyStats = [{ month: monthKey, rankProfit: 0, loanProfit: amount, totalProfit: amount }, ...newMonthlyStats].slice(0, 6);
+        }
+      };
+
+      if (action === 'DISBURSE') {
+        updateProfit(loan.amount * 0.15); // Recognize 15% fee at disbursement
+      } else if (action === 'SETTLE') {
+        if (loan.settlementType === 'PRINCIPAL') {
+          // Vay Gốc: Recognize 15% fee for the next cycle + fines
+          updateProfit((loan.amount * 0.15) + (loan.fine || 0));
+        } else {
+          // Tất Cả: Only recognize fines (15% was already recognized at disbursement)
+          updateProfit(loan.fine || 0);
         }
       }
 
@@ -789,8 +801,8 @@ const App: React.FC = () => {
         loans: [updatedLoan], // Only the changed loan
         budget: newBudget,
         users: usersUpdated ? [newRegisteredUsers.find(u => u.id === loan.userId)] : undefined,
-        loanProfit: action === 'SETTLE' ? newLoanProfit : undefined,
-        monthlyStats: action === 'SETTLE' ? newMonthlyStats : undefined
+        loanProfit: (action === 'SETTLE' || action === 'DISBURSE') ? newLoanProfit : undefined,
+        monthlyStats: (action === 'SETTLE' || action === 'DISBURSE') ? newMonthlyStats : undefined
       };
 
       const response = await fetch('/api/sync', {

@@ -168,6 +168,12 @@ const AdminLoanApproval: React.FC<AdminLoanApprovalProps> = ({ loans, isGlobalPr
                             <div>
                               <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest mb-0.5">{loan.id}</p>
                               <h4 className="text-base font-black text-white">{loan.amount.toLocaleString()} đ</h4>
+                              {loan.status === 'ĐÃ DUYỆT' && (
+                                <div className="mt-1 flex items-center gap-1.5">
+                                  <span className="text-[8px] font-black text-green-500 uppercase tracking-widest">Thực nhận (85%):</span>
+                                  <span className="text-[10px] font-black text-green-500">{(loan.amount * 0.85).toLocaleString()} đ</span>
+                                </div>
+                              )}
                             </div>
                             <span className={`text-[7px] font-black px-2 py-0.5 rounded-md uppercase ${statusStyles}`}>
                               {isOverdue ? 'QUÁ HẠN' : loan.status}
@@ -252,18 +258,25 @@ const AdminLoanApproval: React.FC<AdminLoanApprovalProps> = ({ loans, isGlobalPr
                               </div>
                             )}
                             {loan.status === 'ĐÃ DUYỆT' && (
-                              <button 
-                                onClick={async () => {
-                                  if (isProcessing || isGlobalProcessing) return;
-                                  setIsProcessing(loan.id);
-                                  await onAction(loan.id, 'DISBURSE');
-                                  setIsProcessing(null);
-                                }}
-                                disabled={!!isProcessing || isGlobalProcessing}
-                                className={`w-full bg-green-600 text-white py-2.5 rounded-lg font-black text-[9px] uppercase active:scale-95 transition-all ${isProcessing === loan.id || isGlobalProcessing ? 'opacity-50' : ''}`}
-                              >
-                                {isProcessing === loan.id || isGlobalProcessing ? 'Đang giải ngân...' : 'Giải ngân tiền'}
-                              </button>
+                              <div className="flex flex-col gap-2">
+                                <div className="bg-green-500/5 border border-green-500/10 rounded-xl p-2.5">
+                                  <p className="text-[7px] font-bold text-gray-400 uppercase leading-relaxed">
+                                    <span className="text-green-500">Lưu ý:</span> Hệ thống sẽ trừ <span className="text-white">85%</span> giá trị khoản vay vào ngân sách. Admin vui lòng chuyển khoản thủ công số tiền <span className="text-white font-black">{(loan.amount * 0.85).toLocaleString()} đ</span> cho khách hàng.
+                                  </p>
+                                </div>
+                                <button 
+                                  onClick={async () => {
+                                    if (isProcessing || isGlobalProcessing) return;
+                                    setIsProcessing(loan.id);
+                                    await onAction(loan.id, 'DISBURSE');
+                                    setIsProcessing(null);
+                                  }}
+                                  disabled={!!isProcessing || isGlobalProcessing}
+                                  className={`w-full bg-green-600 text-white py-2.5 rounded-lg font-black text-[9px] uppercase active:scale-95 transition-all ${isProcessing === loan.id || isGlobalProcessing ? 'opacity-50' : ''}`}
+                                >
+                                  {isProcessing === loan.id || isGlobalProcessing ? 'Đang giải ngân...' : 'Xác nhận đã giải ngân'}
+                                </button>
+                              </div>
                             )}
                             {loan.status === 'CHỜ TẤT TOÁN' && (
                               <div className="flex flex-col gap-1.5 w-full">
